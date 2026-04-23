@@ -1,0 +1,92 @@
+import pandas as pd
+from datetime import datetime
+
+def comparar_alunos( arquivo_excel="data/alunos.xlsx", coluna1="alunos_a", coluna2="alunos_b", nome_arquivo_saida="relatorio_alunos.txt"):
+    """
+    Compara duas colunas de alunos em um arquivo Excel e gera relatório TXT
+    
+    Args:
+        arquivo_excel (str): Caminho do arquivo Excel
+        coluna1 (str): Nome da primeira coluna (ex: 'alunos_a')
+        coluna2 (str): Nome da segunda coluna (ex: 'alunos_b')
+        nome_arquivo_saida (str): Nome do arquivo de relatório
+    """
+   
+    try:
+        # Lê o arquivo Excel
+        df = pd.read_excel(arquivo_excel)
+        
+        # Obtém as listas de alunos das colunas
+        alunos_col1 = set(df[coluna1].dropna().astype(str).str.strip().str.upper())
+        alunos_col2 = set(df[coluna2].dropna().astype(str).str.strip().str.upper())
+        
+        # Calcula os conjuntos de comparação
+        apenas_col1 = alunos_col1 - alunos_col2  # Só na coluna 1
+        apenas_col2 = alunos_col2 - alunos_col1  # Só na coluna 2
+        em_ambas = alunos_col1 & alunos_col2     # Em ambas as colunas
+        
+        # Gera timestamp para o relatório
+        timestamp = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+        
+        # Cria o relatório
+        with open(nome_arquivo_saida, 'w', encoding='utf-8') as f:
+            f.write("=" * 80 + "\n")
+            f.write("RELATÓRIO DE COMPARAÇÃO DE ALUNOS\n")
+            f.write("=" * 80 + "\n")
+            f.write(f"Arquivo: {arquivo_excel}\n")
+            f.write(f"Data/Hora: {timestamp}\n\n")
+            
+            f.write(f"TOTAL COLUNA 1 ({coluna1}): {len(alunos_col1)}\n")
+            f.write(f"TOTAL COLUNA 2 ({coluna2}): {len(alunos_col2)}\n")
+            f.write("-" * 80 + "\n\n")
+            
+            # Alunos presentes em AMBAS as colunas
+            f.write("✓ ALUNOS PRESENTES EM AMBAS AS COLUNAS:\n")
+            f.write(f"   Quantidade: {len(em_ambas)}\n")
+            if em_ambas:
+                for aluno in sorted(em_ambas):
+                    f.write(f"   - {aluno}\n")
+            f.write("\n")
+            
+            # Alunos APENAS na coluna 1
+            f.write("✗ ALUNOS APENAS NA COLUNA 1:\n")
+            f.write(f"   Quantidade: {len(apenas_col1)}\n")
+            if apenas_col1:
+                for aluno in sorted(apenas_col1):
+                    f.write(f"   - {aluno}\n")
+            f.write("\n")
+            
+            # Alunos APENAS na coluna 2
+            f.write("✗ ALUNOS APENAS NA COLUNA 2:\n")
+            f.write(f"   Quantidade: {len(apenas_col2)}\n")
+            if apenas_col2:
+                for aluno in sorted(apenas_col2):
+                    f.write(f"   - {aluno}\n")
+            
+            f.write("-" * 80 + "\n")
+            f.write("FIM DO RELATÓRIO\n")
+        
+        print(f"✅ Relatório gerado com sucesso: {nome_arquivo_saida}")
+        print(f"📊 Resumo:")
+        print(f"   - Coluna 1 ({coluna1}): {len(alunos_col1)} alunos")
+        print(f"   - Coluna 2 ({coluna2}): {len(alunos_col2)} alunos")
+        print(f"   - Em comum: {len(em_ambas)} alunos")
+        print(f"   - Apenas coluna 1: {len(apenas_col1)} alunos")
+        print(f"   - Apenas coluna 2: {len(apenas_col2)} alunos")
+        
+    except FileNotFoundError:
+        print(f"❌ Erro: Arquivo '{arquivo_excel}' não encontrado!")
+    except KeyError as e:
+        print(f"❌ Erro: Coluna não encontrada! Verifique os nomes:")
+        print(f"   Colunas disponíveis: {list(df.columns)}")
+    except Exception as e:
+        print(f"❌ Erro inesperado: {str(e)}")
+
+# USO
+if __name__ == "__main__":
+    # CONFIGURE AQUI SEUS PARÂMETROS
+    arquivo = "data/alunos.xlsx"  # Nome do seu arquivo Excel
+    coluna_a = "alunos_a"          # Nome da primeira coluna
+    coluna_b = "alunos_b"         # Nome da segunda coluna
+    
+    comparar_alunos(arquivo, coluna_a, coluna_b)
